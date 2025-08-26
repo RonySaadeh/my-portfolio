@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* Your custom vars/utilities */
+:root { --accent: #60A5FA; }

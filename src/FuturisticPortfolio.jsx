@@ -1,0 +1,792 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, useInView, useMotionValue, useSpring, useTransform, useScroll } from "framer-motion";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Download,
+  ExternalLink,
+  Moon,
+  Sun,
+  ChevronDown,
+  ArrowUpRight,
+  Search,
+  Sparkles,
+  Cpu,
+  Layout,
+  ScrollText,
+  Rocket
+} from "lucide-react";
+
+/**
+ * Futuristic Portfolio — single‑file, production‑ready React component
+ * - TailwindCSS for sleek UI (no external CSS needed)
+ * - Framer Motion for buttery, scroll‑driven animations
+ * - Sticky glass navbar, top scroll progress, command palette (⌘/Ctrl‑K)
+ * - Magnetic hover buttons, parallax hero, 3D tilt cards, accent picker, theme toggle
+ * - Projects filter/search, Experience timeline, Skills meter, polished Contact
+ *
+ * Drop this component into a Vite/CRA/Next app and render <FuturisticPortfolio />
+ */
+
+// -------------------------------
+// Demo data — replace with yours
+// -------------------------------
+const PROJECTS = [
+  {
+    id: "intels-sis",
+    title: "INTELS SIS — Service Information System",
+    description:
+      "Flutter desktop + Python/Flask. Industrial manuals, BOM, stock availability, request workflows, Excel/PDF automation.",
+    tags: ["Flutter", "Python", "Excel", "PDF", "Desktop"],
+    year: 2025,
+    image: "https://picsum.photos/seed/intels/1200/800",
+    link: "#",
+    repo: "#"
+  },
+  {
+    id: "private-management-tool",
+    title: "Private Management Tool — Parlays & Analytics",
+    description:
+      "Flutter Web + Firebase. Parlays builder, Firestore data, analytics dashboards, Excel exports, tracking automation.",
+    tags: ["Flutter Web", "Firebase", "Analytics"],
+    year: 2025,
+    image: "https://picsum.photos/seed/pmt/1200/800",
+    link: "#",
+    repo: "#"
+  },
+  {
+    id: "friendscrow",
+    title: "FriendScrow — AI Travel & Budgeting",
+    description:
+      "Flutter + Python ML. Group expense tracking, smart recommendations, logistic‑regression feedback loops, Lebanon travel dataset.",
+    tags: ["AI", "Flutter", "Python", "Travel"],
+    year: 2024,
+    image: "https://picsum.photos/seed/friend/1200/800",
+    link: "#",
+    repo: "#"
+  },
+  {
+    id: "btellaya-pos",
+    title: "Btellaya 1850 — POS & Restaurant Suite",
+    description:
+      "Windows Flutter app. Table orders, discounts/tips, Excel reports, receipt PDF, admin dashboard.",
+    tags: ["Flutter", "POS", "Excel"],
+    year: 2024,
+    image: "https://picsum.photos/seed/pos/1200/800",
+    link: "#",
+    repo: "#"
+  }
+];
+
+const EXPERIENCE = [
+  {
+    role: "Software Engineer & Builder",
+    org: "INTELS | ESAB | Freelance",
+    period: "2023 → Present",
+    bullets: [
+      "Lead Flutter/Python desktop systems with Excel/PDF automation.",
+      "Designed premium, performance‑first UIs and animations.",
+      "Integrated Firestore, Auth, and analytics for the web."
+    ]
+  },
+  {
+    role: "AI/ML Projects",
+    org: "University Senior Project",
+    period: "2023 → 2024",
+    bullets: [
+      "Travel recommendation engine with ML feedback loops.",
+      "Data pipelines, experimentation notebooks, model evals."
+    ]
+  }
+];
+
+const SKILLS = [
+  { name: "Flutter / Dart", level: 92 },
+  { name: "Python / Flask", level: 90 },
+  { name: "React / Next", level: 85 },
+  { name: "Firestore / Firebase", level: 88 },
+  { name: "Excel Automation", level: 95 },
+  { name: "UI/UX & Motion", level: 93 }
+];
+
+// -------------------------------
+// Theme + accent helpers
+// -------------------------------
+function useLocalStorage(key, initial) {
+  const [value, setValue] = useState(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+    return saved ? JSON.parse(saved) : initial;
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
+  }, [key, value]);
+  return [value, setValue];
+}
+
+const ACCENTS = [
+  { name: "Sapphire", value: "#60A5FA" },
+  { name: "Crimson", value: "#EF4444" },
+  { name: "Emerald", value: "#10B981" },
+  { name: "Violet", value: "#8B5CF6" },
+  { name: "Amber", value: "#F59E0B" }
+];
+
+// -------------------------------
+// Small utilities
+// -------------------------------
+const cn = (...xs) => xs.filter(Boolean).join(" ");
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+// Magnetic hover hook
+function useMagnet(strength = 0.25) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const onMove = (e) => {
+      const rect = node.getBoundingClientRect();
+      const relX = e.clientX - (rect.left + rect.width / 2);
+      const relY = e.clientY - (rect.top + rect.height / 2);
+      node.style.transform = `translate(${relX * strength}px, ${relY * strength}px)`;
+    };
+    const reset = () => (node.style.transform = "translate(0,0)");
+    node.addEventListener("mousemove", onMove);
+    node.addEventListener("mouseleave", reset);
+    return () => {
+      node.removeEventListener("mousemove", onMove);
+      node.removeEventListener("mouseleave", reset);
+    };
+  }, [strength]);
+  return ref;
+}
+
+// Tilt card hook
+function useTilt(maxTilt = 10) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onMove = (e) => {
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      const rx = (py - 0.5) * -2 * maxTilt;
+      const ry = (px - 0.5) * 2 * maxTilt;
+      el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    };
+    const reset = () => (el.style.transform = "perspective(900px) rotateX(0) rotateY(0)");
+    el.addEventListener("mousemove", onMove);
+    el.addEventListener("mouseleave", reset);
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      el.removeEventListener("mouseleave", reset);
+    };
+  }, [maxTilt]);
+  return ref;
+}
+
+// -------------------------------
+// Main component
+// -------------------------------
+export default function FuturisticPortfolio() {
+  const [dark, setDark] = useLocalStorage("pf.theme.dark", true);
+  const [accent, setAccent] = useLocalStorage("pf.theme.accent", ACCENTS[0].value);
+  const [query, setQuery] = useState("");
+  const [activeTag, setActiveTag] = useState("All");
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [modalProject, setModalProject] = useState(null);
+
+  // cursor glow
+  const [cursor, setCursor] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const onMove = (e) => setCursor({ x: e.clientX, y: e.clientY });
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  // top progress bar
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 20 });
+  const progressWidth = useTransform(progress, (v) => `${v * 100}%`);
+
+  // command palette (Ctrl/Cmd + K)
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((s) => !s);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // derived data
+  const allTags = useMemo(() => ["All", ...Array.from(new Set(PROJECTS.flatMap((p) => p.tags)))], []);
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase();
+    return PROJECTS.filter((p) => {
+      const hitQ = !q || p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
+      const hitT = activeTag === "All" || p.tags.includes(activeTag);
+      return hitQ && hitT;
+    });
+  }, [query, activeTag]);
+
+  // apply theme vars to document
+  useEffect(() => {
+    document.documentElement.style.setProperty("--accent", accent);
+    document.documentElement.classList.toggle("dark", !!dark);
+  }, [accent, dark]);
+
+  // section refs for nav highlight
+  const heroRef = useRef(null);
+  const projRef = useRef(null);
+  const expRef = useRef(null);
+  const skillsRef = useRef(null);
+  const contactRef = useRef(null);
+
+  const inHero = useInView(heroRef, { margin: "-40% 0px -60% 0px" });
+  const inProj = useInView(projRef, { margin: "-40% 0px -60% 0px" });
+  const inExp = useInView(expRef, { margin: "-40% 0px -60% 0px" });
+  const inSkills = useInView(skillsRef, { margin: "-40% 0px -60% 0px" });
+  const inContact = useInView(contactRef, { margin: "-40% 0px -60% 0px" });
+
+  const activeSection = inContact
+    ? "Contact"
+    : inSkills
+    ? "Skills"
+    : inExp
+    ? "Experience"
+    : inProj
+    ? "Projects"
+    : "Home";
+
+  return (
+    <div className={cn("min-h-screen selection:bg-[var(--accent)]/30", dark ? "dark" : "")}> 
+      {/* BACKGROUND */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        {/* gradient backdrop */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" />
+        {/* subtle grid */}
+        <div className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] [background-size:40px_40px] opacity-20" />
+        {/* moving aurora */}
+        <motion.div
+          aria-hidden
+          className="absolute -top-24 left-1/3 h-[60vw] w-[60vw] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(600px 400px at 50% 50%, var(--accent), transparent 60%)" }}
+          animate={{ y: [0, 40, -10, 0], x: [0, -20, 30, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        {/* cursor glow */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-30"
+          style={{
+            top: cursor.y,
+            left: cursor.x,
+            width: 400,
+            height: 400,
+            background: "radial-gradient(200px 200px at center, var(--accent), transparent 60%)"
+          }}
+        />
+      </div>
+
+      {/* TOP PROGRESS */}
+      <motion.div
+        className="fixed left-0 right-0 top-0 z-50 h-1 bg-[var(--accent)]"
+        style={{ width: progressWidth }}
+      />
+
+      {/* NAVBAR */}
+      <nav className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 border-b border-white/10">
+        <div className="mx-auto max-w-7xl px-4">
+          <div className="flex h-14 items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-md bg-[var(--accent)]/80 ring-2 ring-white/20 grid place-items-center text-xs font-bold text-white">RS</div>
+              <span className="text-sm text-white/70 hidden sm:inline">Rony Saadeh</span>
+            </div>
+            <div className="hidden md:flex items-center gap-2 text-white/80">
+              <NavLink active={activeSection === "Home"} href="#home">Home</NavLink>
+              <NavLink active={activeSection === "Projects"} href="#projects">Projects</NavLink>
+              <NavLink active={activeSection === "Experience"} href="#experience">Experience</NavLink>
+              <NavLink active={activeSection === "Skills"} href="#skills">Skills</NavLink>
+              <NavLink active={activeSection === "Contact"} href="#contact">Contact</NavLink>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPaletteOpen(true)}
+                className="group hidden sm:flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/80 hover:bg-white/10 active:scale-[.98] transition"
+              >
+                <Search className="h-4 w-4 opacity-80" />
+                <span className="opacity-80">Search</span>
+                <kbd className="ml-1 rounded border border-white/20 bg-white/10 px-1.5 text-[10px]">Ctrl K</kbd>
+              </button>
+              <ThemeToggle dark={dark} setDark={setDark} />
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section id="home" ref={heroRef} className="relative mx-auto max-w-7xl px-4 pt-16 md:pt-24">
+        <div className="grid items-center gap-10 md:grid-cols-2">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="text-4xl md:text-6xl font-black tracking-tight text-white"
+            >
+              Building <span className="text-[var(--accent)]">legendary</span> apps
+              <br /> with precision & flair.
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.9, delay: 0.1 }}
+              className="mt-5 max-w-xl text-white/70"
+            >
+              I’m Rony — a full‑stack developer crafting premium Flutter, React, and Python products.
+              I obsess over motion design, performance, and systems that feel like magic.
+            </motion.p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Magnetic>
+                <a href="#projects" className="group inline-flex items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2 font-semibold text-slate-900 shadow-lg shadow-[var(--accent)]/30">
+                  <Rocket className="h-4 w-4" /> Explore Projects
+                </a>
+              </Magnetic>
+              <Magnetic>
+                <a href="#contact" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 font-semibold text-white/90 hover:bg-white/10">
+                  <Mail className="h-4 w-4" /> Contact
+                </a>
+              </Magnetic>
+              <Magnetic>
+                <a href="/resume.pdf" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/0 px-4 py-2 text-white/80 hover:bg-white/10">
+                  <Download className="h-4 w-4" /> Resume
+                </a>
+              </Magnetic>
+            </div>
+            <div className="mt-6 flex gap-3 text-white/70">
+              <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
+              <a aria-label="LinkedIn" href="#" className="hover:text-white"><Linkedin className="h-5 w-5" /></a>
+              <a aria-label="Email" href="mailto:hello@example.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
+            </div>
+          </div>
+
+          {/* Parallax showcase */}
+          <HeroParallax accent={accent} />
+        </div>
+
+        <div className="mt-16 flex items-center justify-center text-white/60">
+          <ChevronDown className="h-5 w-5 animate-bounce" />
+        </div>
+      </section>
+
+      {/* ACCENT PICKER */}
+      <section className="mx-auto max-w-7xl px-4">
+        <div className="mt-10 flex items-center gap-3 text-white/70">
+          <Sparkles className="h-4 w-4" />
+          <span className="text-sm">Accent:</span>
+          <div className="flex flex-wrap gap-2">
+            {ACCENTS.map((c) => (
+              <button
+                key={c.value}
+                onClick={() => setAccent(c.value)}
+                className={cn(
+                  "h-6 w-6 rounded-full ring-2 ring-white/30",
+                  accent === c.value ? "ring-[var(--accent)] ring-offset-2 ring-offset-slate-900" : ""
+                )}
+                style={{ backgroundColor: c.value }}
+                title={c.name}
+              />
+            ))}
+        </div>
+        </div>
+      </section>
+
+      {/* PROJECTS */}
+      <section id="projects" ref={projRef} className="mx-auto max-w-7xl px-4 pt-20">
+        <SectionHeader icon={<Layout className="h-5 w-5" />} title="Projects" subtitle="Featured builds & case studies" />
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-white/40" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search projects"
+              className="w-72 rounded-xl bg-white/5 pl-9 pr-3 py-2 text-sm text-white/90 placeholder-white/40 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {allTags.map((t) => (
+              <button
+                key={t}
+                onClick={() => setActiveTag(t)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs",
+                  activeTag === t
+                    ? "border-[var(--accent)]/70 bg-[var(--accent)]/10 text-white"
+                    : "border-white/10 bg-white/0 text-white/70 hover:bg-white/5"
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          {filtered.map((p, i) => (
+            <ProjectCard key={p.id} p={p} index={i} onOpen={() => setModalProject(p)} />
+          ))}
+        </div>
+      </section>
+
+      {/* EXPERIENCE */}
+      <section id="experience" ref={expRef} className="mx-auto max-w-7xl px-4 pt-24">
+        <SectionHeader icon={<ScrollText className="h-5 w-5" />} title="Experience" subtitle="What I ship & how I work" />
+        <div className="mt-8 relative">
+          <div className="absolute left-3 top-0 bottom-0 w-[2px] bg-gradient-to-b from-[var(--accent)]/60 via-white/10 to-transparent" />
+          <div className="space-y-6">
+            {EXPERIENCE.map((e, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.08 }}
+                className="relative ml-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-white/80"
+              >
+                <div className="absolute -left-[23px] top-5 h-4 w-4 rounded-full border border-white/20 bg-[var(--accent)] shadow-[0_0_20px] shadow-[var(--accent)]/40" />
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <h3 className="text-white font-semibold">{e.role}</h3>
+                    <p className="text-sm text-white/60">{e.org}</p>
+                  </div>
+                  <span className="text-xs text-white/50">{e.period}</span>
+                </div>
+                <ul className="mt-3 list-disc pl-5 text-sm">
+                  {e.bullets.map((b, i) => (
+                    <li key={i}>{b}</li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SKILLS */}
+      <section id="skills" ref={skillsRef} className="mx-auto max-w-7xl px-4 pt-24">
+        <SectionHeader icon={<Cpu className="h-5 w-5" />} title="Skills" subtitle="Core stack & strengths" />
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          {SKILLS.map((s, i) => (
+            <motion.div
+              key={s.name}
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.05 }}
+              className="rounded-2xl border border-white/10 bg-white/5 p-4"
+            >
+              <div className="flex items-center justify-between text-white/80">
+                <span>{s.name}</span>
+                <span className="text-sm text-white/60">{s.level}%</span>
+              </div>
+              <div className="mt-3 h-2 w-full rounded-full bg-white/10">
+                <motion.div
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${s.level}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="h-2 rounded-full bg-[var(--accent)]"
+                />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section id="contact" ref={contactRef} className="mx-auto max-w-7xl px-4 pt-24 pb-20">
+        <SectionHeader icon={<Mail className="h-5 w-5" />} title="Contact" subtitle="Let’s build something exceptional" />
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            onSubmit={(e) => { e.preventDefault(); alert("Thanks! I’ll get back to you."); }}
+            className="rounded-2xl border border-white/10 bg-white/5 p-6"
+          >
+            <div className="grid gap-4">
+              <input className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="Your name" required />
+              <input type="email" className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="Email" required />
+              <textarea rows={5} className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="What can we build together?" />
+              <Magnetic>
+                <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-slate-900 shadow-lg shadow-[var(--accent)]/30">
+                  Send Message <ArrowUpRight className="h-4 w-4" />
+                </button>
+              </Magnetic>
+            </div>
+          </motion.form>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="rounded-2xl border border-white/10 bg-white/5 p-6 text-white/80"
+          >
+            <h3 className="text-white font-semibold">Let’s talk</h3>
+            <p className="mt-2 text-sm text-white/70">
+              I’m open to collaborations, freelance work, and ambitious product ideas.
+              Best reach me by email; I reply within 24h.
+            </p>
+            <div className="mt-4 space-y-2 text-sm">
+              <p><span className="text-white/50">Email:</span> <a className="text-white hover:underline" href="mailto:hello@example.com">hello@example.com</a></p>
+              <p><span className="text-white/50">Location:</span> Beirut, Lebanon · Remote‑friendly</p>
+            </div>
+            <div className="mt-6 flex gap-3 text-white/80">
+              <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
+              <a aria-label="LinkedIn" href="#" className="hover:text-white"><Linkedin className="h-5 w-5" /></a>
+              <a aria-label="Email" href="mailto:hello@example.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-white/10 py-8 text-center text-sm text-white/50">
+        © {new Date().getFullYear()} Rony Saadeh · Crafted with React, Tailwind, and Framer Motion
+      </footer>
+
+      {/* COMMAND PALETTE */}
+      {paletteOpen && (
+        <CommandPalette onClose={() => setPaletteOpen(false)} setQuery={setQuery} />
+      )}
+
+      {/* PROJECT MODAL */}
+      {modalProject && <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />}
+    </div>
+  );
+}
+
+// -------------------------------
+// Sub‑components
+// -------------------------------
+function NavLink({ href, children, active }) {
+  return (
+    <a
+      href={href}
+      className={cn(
+        "rounded-xl px-3 py-1.5 text-sm transition",
+        active ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"
+      )}
+    >
+      {children}
+    </a>
+  );
+}
+
+function SectionHeader({ icon, title, subtitle }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div>
+        <h2 className="flex items-center gap-2 text-2xl font-bold text-white">
+          <span className="grid place-items-center rounded-lg bg-[var(--accent)]/15 p-2 text-[var(--accent)]">{icon}</span>
+          {title}
+        </h2>
+        <p className="mt-1 text-sm text-white/60">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+function ThemeToggle({ dark, setDark }) {
+  const ref = useMagnet(0.15);
+  return (
+    <button
+      ref={ref}
+      onClick={() => setDark((v) => !v)}
+      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 hover:bg-white/10"
+      aria-label="Toggle theme"
+      title="Toggle theme"
+    >
+      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
+
+function Magnetic({ children }) {
+  const ref = useMagnet(0.3);
+  return (
+    <span ref={ref} className="inline-block">{children}</span>
+  );
+}
+
+function HeroParallax({ accent }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const rot = useTransform(scrollYProgress, [0, 1], [0, 8]);
+  return (
+    <div ref={ref} className="relative grid place-items-center">
+      <div className="relative h-[360px] w-full">
+        <motion.div style={{ y: y1, rotate: rot }} className="absolute left-6 top-6 right-12 bottom-12 rounded-3xl border border-white/10 bg-white/5 backdrop-blur" />
+        <motion.div style={{ y: y2 }} className="absolute -left-4 bottom-6 h-24 w-24 rounded-xl bg-[var(--accent)]/30 blur-md" />
+        <motion.div style={{ y: y2 }} className="absolute right-0 top-0 h-20 w-20 rounded-full bg-[var(--accent)]/20 blur" />
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/40 to-slate-800/20 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 text-white/80">
+              <div className="h-10 w-10 rounded-xl bg-[var(--accent)]/80 ring-2 ring-white/20 grid place-items-center text-slate-900 font-extrabold">RS</div>
+              <div>
+                <div className="text-white font-semibold">Premium Interfaces</div>
+                <div className="text-xs text-white/60">Flutter · React · Python</div>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <Badge>Animations</Badge>
+              <Badge>Excel Automation</Badge>
+              <Badge>Firestore</Badge>
+              <Badge>PDF Tools</Badge>
+              <Badge>Dashboards</Badge>
+              <Badge>AI Workflows</Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Badge({ children }) {
+  return (
+    <span className="rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-center text-[11px] text-white/80">
+      {children}
+    </span>
+  );
+}
+
+function ProjectCard({ p, index, onOpen }) {
+  const ref = useTilt(8);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: index * 0.05 }}
+      className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/5"
+    >
+      <div ref={ref} className="p-0 transition-transform will-change-transform">
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <img src={p.image} alt="" className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/0 to-transparent" />
+          <div className="absolute left-4 right-4 bottom-4">
+            <h3 className="text-xl font-bold text-white drop-shadow">
+              {p.title}
+            </h3>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {p.tags.map((t) => (
+                <span key={t} className="rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white/80 ring-1 ring-white/10">{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3 p-4 text-white/80">
+          <p className="text-sm text-white/70">{p.description}</p>
+          <div className="flex items-center gap-3">
+            <a href={p.link} className="inline-flex items-center gap-1 text-sm text-[var(--accent)] hover:underline">
+              View <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+            <a href={p.repo} className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
+              <Github className="h-3.5 w-3.5" /> Repo
+            </a>
+            <button onClick={onOpen} className="ml-auto rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10">
+              Case Study
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ProjectModal({ project, onClose }) {
+  useEffect(() => {
+    const onEsc = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4">
+      <div className="relative max-w-3xl w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950">
+        <button onClick={onClose} className="absolute right-3 top-3 rounded-md border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/70 hover:bg-white/20">
+          Close
+        </button>
+        <img src={project.image} alt="" className="h-56 w-full object-cover opacity-80" />
+        <div className="p-6 text-white/80">
+          <h3 className="text-white text-2xl font-bold">{project.title}</h3>
+          <p className="mt-2 text-sm text-white/70">{project.description}</p>
+          <ul className="mt-4 list-disc pl-5 text-sm">
+            <li>Problem → Solution narrative with metrics and screenshots.</li>
+            <li>Architecture: tech stack, data flows, integrations.</li>
+            <li>Impact: performance wins, business results, user feedback.</li>
+          </ul>
+          <div className="mt-4 flex gap-3">
+            <a href={project.link} className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900">Visit</a>
+            <a href={project.repo} className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CommandPalette({ onClose, setQuery }) {
+  useEffect(() => {
+    const onEsc = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onEsc);
+    return () => window.removeEventListener("keydown", onEsc);
+  }, [onClose]);
+
+  const go = (hash) => {
+    onClose();
+    setTimeout(() => {
+      document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[90] grid place-items-start bg-black/50 p-4 pt-24">
+      <div className="mx-auto w-full max-w-xl overflow-hidden rounded-2xl border border-white/10 bg-slate-900 shadow-2xl">
+        <div className="flex items-center gap-2 border-b border-white/10 bg-slate-900/80 px-3 py-2">
+          <Search className="h-4 w-4 text-white/60" />
+          <input
+            autoFocus
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search projects or jump to a section…"
+            className="w-full bg-transparent p-2 text-sm text-white outline-none placeholder-white/40"
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 p-3">
+          {[{label:"Home",hash:"#home"},{label:"Projects",hash:"#projects"},{label:"Experience",hash:"#experience"},{label:"Skills",hash:"#skills"},{label:"Contact",hash:"#contact"}].map(it => (
+            <button key={it.hash} onClick={() => go(it.hash)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10">
+              {it.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-white/10 p-2 text-xs text-white/50">
+          <kbd className="rounded border border-white/20 bg-white/10 px-1.5">Esc</kbd> to close
+        </div>
+      </div>
+    </div>
+  );
+}
