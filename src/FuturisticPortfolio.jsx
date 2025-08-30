@@ -962,37 +962,49 @@ function ProjectModal({ project, initialTab = "gallery", onClose }) {
   }, [tab, imgs.length]);
 
   return (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4">
-      <div className="relative max-w-5xl w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950">
+    <div
+      className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-2 sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${project.title} modal`}
+    >
+      {/* Flex column so header stays visible and body scrolls on small screens */}
+      <div className="relative w-full max-w-[100%] sm:max-w-5xl overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 p-3">
+        <div className="flex items-center justify-between gap-2 border-b border-white/10 p-2 sm:p-3">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setTab("gallery")}
-              className={`rounded-lg px-3 py-1.5 text-sm ${tab === "gallery" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"}`}
+              className={`rounded-lg px-3 py-1.5 text-sm ${
+                tab === "gallery" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"
+              }`}
             >
               Gallery
             </button>
             <button
               onClick={() => setTab("info")}
-              className={`rounded-lg px-3 py-1.5 text-sm ${tab === "info" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"}`}
+              className={`rounded-lg px-3 py-1.5 text-sm ${
+                tab === "info" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"
+              }`}
             >
               More Info
             </button>
           </div>
+
           <button
             onClick={onClose}
-            className="rounded-md border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/70 hover:bg-white/20"
+            className="rounded-md border border-white/10 bg-white/10 px-3 py-1.5 text-xs sm:text-sm text-white/80 hover:bg-white/20"
+            aria-label="Close modal"
           >
             Close
           </button>
         </div>
 
-        {/* Body */}
+        {/* Body (scrollable) */}
         {tab === "gallery" ? (
-          <div className="p-0">
-            <div className="relative aspect-[16/9] w-full bg-black">
-              <img src={imgs[idx]} alt="" className="h-full w-full object-contain" loading="lazy" />
+          <div className="p-0 overflow-y-auto">
+            <div className="relative w-full h-[70vh] sm:h-auto sm:aspect-[16/9] bg-black">
+              <img src={imgs[idx]} alt="" className="h-full w-full object-contain" loading="lazy" decoding="async" />
               {imgs.length > 1 && (
                 <>
                   <button
@@ -1019,92 +1031,95 @@ function ProjectModal({ project, initialTab = "gallery", onClose }) {
                   <button
                     key={src + i}
                     onClick={() => setIdx(i)}
-                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${i === idx ? "border-[var(--accent)]" : "border-white/10"}`}
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${
+                      i === idx ? "border-[var(--accent)]" : "border-white/10"
+                    }`}
+                    aria-label={`Open image ${i + 1}`}
                   >
-                    <img src={src} alt="" className="h-full w-full object-cover" />
+                    <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>
             )}
           </div>
         ) : (
-          <div className="p-6 text-white/80">
-            <h3 className="text-white text-2xl font-bold">{project.title}</h3>
-            <p className="mt-2 text-sm text-white/70">{project.description}</p>
+          // ===== Single-column, white text, mobile-friendly =====
+          <div className="overflow-y-auto p-4 sm:p-6 text-white/80">
+            <h3 className="text-white text-xl sm:text-2xl font-bold">{project.title}</h3>
+            {project.year ? (
+              <p className="mt-1 text-xs sm:text-sm text-white/50">Year: {project.year}</p>
+            ) : null}
+            <p className="mt-3 text-sm text-white/70">{project.description}</p>
 
-            {/* Case Study (project-specific) */}
-            {project.caseStudy ? (
-              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <details open>
-                  <summary className="cursor-pointer select-none text-white font-semibold">Case Study</summary>
+            {/* Problem */}
+            {project?.caseStudy?.problem && (
+              <section className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <h4 className="text-white font-semibold text-sm">Problem</h4>
+                <p className="mt-2 text-sm text-white/70">{project.caseStudy.problem}</p>
+              </section>
+            )}
 
-                  {project.caseStudy.problem && (
-                    <p className="mt-3 text-sm text-white/70">
-                      <span className="font-semibold text-white">Problem: </span>
-                      {project.caseStudy.problem}
-                    </p>
-                  )}
+            {/* Solution */}
+            {Array.isArray(project?.caseStudy?.solution) && project.caseStudy.solution.length > 0 && (
+              <section className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <h4 className="text-white font-semibold text-sm">Solution</h4>
+                <ul className="mt-2 list-disc pl-5 text-sm text-white/80 space-y-1.5">
+                  {project.caseStudy.solution.map((s, i) => (
+                    <li key={i}>{s}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-                  {Array.isArray(project.caseStudy.solution) && project.caseStudy.solution.length > 0 && (
-                    <>
-                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Solution</h4>
-                      <ul className="mt-2 list-disc pl-5 text-sm">
-                        {project.caseStudy.solution.map((s, i) => <li key={i}>{s}</li>)}
-                      </ul>
-                    </>
-                  )}
+            {/* Architecture */}
+            {Array.isArray(project?.caseStudy?.architecture) && project.caseStudy.architecture.length > 0 && (
+              <section className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <h4 className="text-white font-semibold text-sm">Architecture</h4>
+                <ul className="mt-2 list-disc pl-5 text-sm text-white/80 space-y-1.5">
+                  {project.caseStudy.architecture.map((a, i) => (
+                    <li key={i}>{a}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-                  {Array.isArray(project.caseStudy.architecture) && project.caseStudy.architecture.length > 0 && (
-                    <>
-                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Architecture</h4>
-                      <ul className="mt-2 list-disc pl-5 text-sm">
-                        {project.caseStudy.architecture.map((a, i) => <li key={i}>{a}</li>)}
-                      </ul>
-                    </>
-                  )}
+            {/* Impact */}
+            {Array.isArray(project?.caseStudy?.impact) && project.caseStudy.impact.length > 0 && (
+              <section className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <h4 className="text-white font-semibold text-sm">Impact</h4>
+                <ul className="mt-2 list-disc pl-5 text-sm text-white/80 space-y-1.5">
+                  {project.caseStudy.impact.map((x, i) => (
+                    <li key={i}>{x}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-                  {Array.isArray(project.caseStudy.impact) && project.caseStudy.impact.length > 0 && (
-                    <>
-                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Impact</h4>
-                      <ul className="mt-2 list-disc pl-5 text-sm">
-                        {project.caseStudy.impact.map((x, i) => <li key={i}>{x}</li>)}
-                      </ul>
-                    </>
-                  )}
-                </details>
-
-                {project.caseStudy.link && project.caseStudy.link !== "#" && (
-                  <div className="mt-5">
-                    <a
-                      href={project.caseStudy.link}
-                      className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900"
-                    >
-                      Visit Website
-                    </a>
-                  </div>
+            {/* Optional links */}
+            {(project?.caseStudy?.link && project.caseStudy.link !== "#") || (project?.link && project.link !== "#") ? (
+              <div className="mt-5 flex flex-wrap gap-3">
+                {project?.caseStudy?.link && project.caseStudy.link !== "#" && (
+                  <a href={project.caseStudy.link} className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900">
+                    Visit Case Study
+                  </a>
+                )}
+                {project?.link && project.link !== "#" && (
+                  <a
+                    href={project.link}
+                    className="rounded-xl border border-white/10 bg-white/0 px-4 py-2 text-sm text-white/90 hover:bg-white/10 inline-flex items-center gap-2"
+                  >
+                    Visit Website <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
                 )}
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-white/60">Case study coming soon.</p>
-            )}
-
-            {/* Optional marketing link at project root */}
-            {project.link && project.link !== "#" && (
-              <div className="mt-5">
-                <a
-                  href={project.link}
-                  className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900"
-                >
-                  Visit Website
-                </a>
-              </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
     </div>
   );
 }
+
 
 function CommandPalette({ onClose, setQuery }) {
   useEffect(() => {
