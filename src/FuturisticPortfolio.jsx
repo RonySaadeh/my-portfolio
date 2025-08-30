@@ -495,8 +495,7 @@ export default function FuturisticPortfolio() {
               transition={{ duration: 0.9, delay: 0.1 }}
               className="mt-5 max-w-xl text-white/70"
             >
-              I’m Rony — a full-stack developer crafting premium Flutter, React, and Python products.
-              I obsess over motion design, performance, and systems that feel like magic.
+             I’m Rony Saadeh — a full-stack developer and AI/ML engineer building premium products with Flutter, React, and Python. I specialize in blending cutting-edge machine learning with elegant, high-performance systems. My work is driven by a passion for motion design, efficiency, and creating experiences that feel seamless and almost magical
             </motion.p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Magnetic>
