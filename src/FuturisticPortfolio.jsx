@@ -1,11 +1,12 @@
+"use client";
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useInView, useMotionValue, useSpring, useTransform, useScroll } from "framer-motion";
+import { motion, useInView, useSpring, useTransform, useScroll } from "framer-motion";
 import {
   Github,
   Linkedin,
   Mail,
   Download,
-  ExternalLink,
   Moon,
   Sun,
   ChevronDown,
@@ -15,23 +16,18 @@ import {
   Cpu,
   Layout,
   ScrollText,
-  Rocket
+  Rocket,
+  ExternalLink
 } from "lucide-react";
 
 /**
- * Futuristic Portfolio — single‑file, production‑ready React component
- * - TailwindCSS for sleek UI (no external CSS needed)
- * - Framer Motion for buttery, scroll‑driven animations
- * - Sticky glass navbar, top scroll progress, command palette (⌘/Ctrl‑K)
- * - Magnetic hover buttons, parallax hero, 3D tilt cards, accent picker, theme toggle
- * - Projects filter/search, Experience timeline, Skills meter, polished Contact
- *
- * Drop this component into a Vite/CRA/Next app and render <FuturisticPortfolio />
+ * Futuristic Portfolio — single-file React component (JS version)
+ * - No TypeScript types, no casts
+ * - Works in CRA/Vite/Next (mark as "use client" in Next)
+ * - No repo links; View => gallery modal, More Info => case study tab
+ * - Tailwind classes included; aesthetics depend on your Tailwind setup
  */
 
-// -------------------------------
-// Demo data — replace with yours
-// -------------------------------
 const PROJECTS = [
   {
     id: "intels-sis",
@@ -41,8 +37,12 @@ const PROJECTS = [
     tags: ["Flutter", "Python", "Excel", "PDF", "Desktop"],
     year: 2025,
     image: "https://picsum.photos/seed/intels/1200/800",
-    link: "#",
-    repo: "#"
+    link: "#", // optional marketing page (NOT a repo)
+    images: [
+      "https://picsum.photos/seed/intels1/1600/1000",
+      "https://picsum.photos/seed/intels2/1600/1000",
+      "https://picsum.photos/seed/intels3/1600/1000"
+    ]
   },
   {
     id: "private-management-tool",
@@ -53,18 +53,26 @@ const PROJECTS = [
     year: 2025,
     image: "https://picsum.photos/seed/pmt/1200/800",
     link: "#",
-    repo: "#"
+    images: [
+      "https://picsum.photos/seed/pmt1/1600/1000",
+      "https://picsum.photos/seed/pmt2/1600/1000",
+      "https://picsum.photos/seed/pmt3/1600/1000"
+    ]
   },
   {
     id: "friendscrow",
     title: "FriendScrow — AI Travel & Budgeting",
     description:
-      "Flutter + Python ML. Group expense tracking, smart recommendations, logistic‑regression feedback loops, Lebanon travel dataset.",
+      "Flutter + Python ML. Group expense tracking, smart recommendations, logistic-regression feedback loops, Lebanon travel dataset.",
     tags: ["AI", "Flutter", "Python", "Travel"],
     year: 2024,
     image: "https://picsum.photos/seed/friend/1200/800",
     link: "#",
-    repo: "#"
+    images: [
+      "https://picsum.photos/seed/friend1/1600/1000",
+      "https://picsum.photos/seed/friend2/1600/1000",
+      "https://picsum.photos/seed/friend3/1600/1000"
+    ]
   },
   {
     id: "btellaya-pos",
@@ -75,7 +83,11 @@ const PROJECTS = [
     year: 2024,
     image: "https://picsum.photos/seed/pos/1200/800",
     link: "#",
-    repo: "#"
+    images: [
+      "https://picsum.photos/seed/pos1/1600/1000",
+      "https://picsum.photos/seed/pos2/1600/1000",
+      "https://picsum.photos/seed/pos3/1600/1000"
+    ]
   }
 ];
 
@@ -86,7 +98,7 @@ const EXPERIENCE = [
     period: "2023 → Present",
     bullets: [
       "Lead Flutter/Python desktop systems with Excel/PDF automation.",
-      "Designed premium, performance‑first UIs and animations.",
+      "Designed premium, performance-first UIs and animations.",
       "Integrated Firestore, Auth, and analytics for the web."
     ]
   },
@@ -110,13 +122,15 @@ const SKILLS = [
   { name: "UI/UX & Motion", level: 93 }
 ];
 
-// -------------------------------
-// Theme + accent helpers
-// -------------------------------
 function useLocalStorage(key, initial) {
   const [value, setValue] = useState(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-    return saved ? JSON.parse(saved) : initial;
+    if (typeof window === "undefined") return initial;
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : initial;
+    } catch {
+      return initial;
+    }
   });
   useEffect(() => {
     try {
@@ -134,13 +148,8 @@ const ACCENTS = [
   { name: "Amber", value: "#F59E0B" }
 ];
 
-// -------------------------------
-// Small utilities
-// -------------------------------
 const cn = (...xs) => xs.filter(Boolean).join(" ");
-const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-// Magnetic hover hook
 function useMagnet(strength = 0.25) {
   const ref = useRef(null);
   useEffect(() => {
@@ -163,7 +172,6 @@ function useMagnet(strength = 0.25) {
   return ref;
 }
 
-// Tilt card hook
 function useTilt(maxTilt = 10) {
   const ref = useRef(null);
   useEffect(() => {
@@ -188,16 +196,15 @@ function useTilt(maxTilt = 10) {
   return ref;
 }
 
-// -------------------------------
-// Main component
-// -------------------------------
 export default function FuturisticPortfolio() {
   const [dark, setDark] = useLocalStorage("pf.theme.dark", true);
   const [accent, setAccent] = useLocalStorage("pf.theme.accent", ACCENTS[0].value);
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState("All");
   const [paletteOpen, setPaletteOpen] = useState(false);
+
   const [modalProject, setModalProject] = useState(null);
+  const [modalTab, setModalTab] = useState("gallery"); // "gallery" | "info"
 
   // cursor glow
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
@@ -235,13 +242,14 @@ export default function FuturisticPortfolio() {
     });
   }, [query, activeTag]);
 
-  // apply theme vars to document
+  // apply theme vars
   useEffect(() => {
+    if (typeof document === "undefined") return;
     document.documentElement.style.setProperty("--accent", accent);
     document.documentElement.classList.toggle("dark", !!dark);
   }, [accent, dark]);
 
-  // section refs for nav highlight
+  // section refs
   const heroRef = useRef(null);
   const projRef = useRef(null);
   const expRef = useRef(null);
@@ -265,14 +273,11 @@ export default function FuturisticPortfolio() {
     : "Home";
 
   return (
-    <div className={cn("min-h-screen selection:bg-[var(--accent)]/30", dark ? "dark" : "")}> 
+    <div className={cn("min-h-screen selection:bg-[var(--accent)]/30", dark ? "dark" : "")}>
       {/* BACKGROUND */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        {/* gradient backdrop */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" />
-        {/* subtle grid */}
         <div className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] [background-size:40px_40px] opacity-20" />
-        {/* moving aurora */}
         <motion.div
           aria-hidden
           className="absolute -top-24 left-1/3 h-[60vw] w-[60vw] rounded-full blur-3xl"
@@ -280,7 +285,6 @@ export default function FuturisticPortfolio() {
           animate={{ y: [0, 40, -10, 0], x: [0, -20, 30, 0] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         />
-        {/* cursor glow */}
         <div
           aria-hidden
           className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-30"
@@ -295,10 +299,7 @@ export default function FuturisticPortfolio() {
       </div>
 
       {/* TOP PROGRESS */}
-      <motion.div
-        className="fixed left-0 right-0 top-0 z-50 h-1 bg-[var(--accent)]"
-        style={{ width: progressWidth }}
-      />
+      <motion.div className="fixed left-0 right-0 top-0 z-50 h-1 bg-[var(--accent)]" style={{ width: progressWidth }} />
 
       {/* NAVBAR */}
       <nav className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 border-b border-white/10">
@@ -351,7 +352,7 @@ export default function FuturisticPortfolio() {
               transition={{ duration: 0.9, delay: 0.1 }}
               className="mt-5 max-w-xl text-white/70"
             >
-              I’m Rony — a full‑stack developer crafting premium Flutter, React, and Python products.
+              I’m Rony — a full-stack developer crafting premium Flutter, React, and Python products.
               I obsess over motion design, performance, and systems that feel like magic.
             </motion.p>
             <div className="mt-6 flex flex-wrap gap-3">
@@ -372,14 +373,14 @@ export default function FuturisticPortfolio() {
               </Magnetic>
             </div>
             <div className="mt-6 flex gap-3 text-white/70">
+              {/* You can remove GitHub if you don't want any repo hints */}
               <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
               <a aria-label="LinkedIn" href="#" className="hover:text-white"><Linkedin className="h-5 w-5" /></a>
               <a aria-label="Email" href="mailto:hello@example.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
             </div>
           </div>
 
-          {/* Parallax showcase */}
-          <HeroParallax accent={accent} />
+          <HeroParallax />
         </div>
 
         <div className="mt-16 flex items-center justify-center text-white/60">
@@ -405,7 +406,7 @@ export default function FuturisticPortfolio() {
                 title={c.name}
               />
             ))}
-        </div>
+          </div>
         </div>
       </section>
 
@@ -443,7 +444,15 @@ export default function FuturisticPortfolio() {
 
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
           {filtered.map((p, i) => (
-            <ProjectCard key={p.id} p={p} index={i} onOpen={() => setModalProject(p)} />
+            <ProjectCard
+              key={p.id}
+              p={p}
+              index={i}
+              onOpen={(tab) => {
+                setModalProject(p);
+                setModalTab(tab);
+              }}
+            />
           ))}
         </div>
       </section>
@@ -551,7 +560,7 @@ export default function FuturisticPortfolio() {
             </p>
             <div className="mt-4 space-y-2 text-sm">
               <p><span className="text-white/50">Email:</span> <a className="text-white hover:underline" href="mailto:hello@example.com">hello@example.com</a></p>
-              <p><span className="text-white/50">Location:</span> Beirut, Lebanon · Remote‑friendly</p>
+              <p><span className="text-white/50">Location:</span> Beirut, Lebanon · Remote-friendly</p>
             </div>
             <div className="mt-6 flex gap-3 text-white/80">
               <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
@@ -568,19 +577,22 @@ export default function FuturisticPortfolio() {
       </footer>
 
       {/* COMMAND PALETTE */}
-      {paletteOpen && (
-        <CommandPalette onClose={() => setPaletteOpen(false)} setQuery={setQuery} />
-      )}
+      {paletteOpen && <CommandPalette onClose={() => setPaletteOpen(false)} setQuery={setQuery} />}
 
       {/* PROJECT MODAL */}
-      {modalProject && <ProjectModal project={modalProject} onClose={() => setModalProject(null)} />}
+      {modalProject && (
+        <ProjectModal
+          project={modalProject}
+          initialTab={modalTab}
+          onClose={() => setModalProject(null)}
+        />
+      )}
     </div>
   );
 }
 
-// -------------------------------
-// Sub‑components
-// -------------------------------
+/* ------------------ Sub-components ------------------ */
+
 function NavLink({ href, children, active }) {
   return (
     <a
@@ -626,12 +638,10 @@ function ThemeToggle({ dark, setDark }) {
 
 function Magnetic({ children }) {
   const ref = useMagnet(0.3);
-  return (
-    <span ref={ref} className="inline-block">{children}</span>
-  );
+  return <span ref={ref} className="inline-block">{children}</span>;
 }
 
-function HeroParallax({ accent }) {
+function HeroParallax() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -60]);
@@ -690,9 +700,7 @@ function ProjectCard({ p, index, onOpen }) {
           <img src={p.image} alt="" className="h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/0 to-transparent" />
           <div className="absolute left-4 right-4 bottom-4">
-            <h3 className="text-xl font-bold text-white drop-shadow">
-              {p.title}
-            </h3>
+            <h3 className="text-xl font-bold text-white drop-shadow">{p.title}</h3>
             <div className="mt-1 flex flex-wrap gap-2">
               {p.tags.map((t) => (
                 <span key={t} className="rounded-full bg-black/40 px-2 py-0.5 text-[10px] text-white/80 ring-1 ring-white/10">{t}</span>
@@ -700,17 +708,21 @@ function ProjectCard({ p, index, onOpen }) {
             </div>
           </div>
         </div>
+
         <div className="space-y-3 p-4 text-white/80">
           <p className="text-sm text-white/70">{p.description}</p>
-          <div className="flex items-center gap-3">
-            <a href={p.link} className="inline-flex items-center gap-1 text-sm text-[var(--accent)] hover:underline">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => onOpen("gallery")}
+              className="inline-flex items-center gap-1 text-sm text-[var(--accent)] hover:underline"
+            >
               View <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-            <a href={p.repo} className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white">
-              <Github className="h-3.5 w-3.5" /> Repo
-            </a>
-            <button onClick={onOpen} className="ml-auto rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/80 hover:bg-white/10">
-              Case Study
+            </button>
+            <button
+              onClick={() => onOpen("info")}
+              className="inline-flex items-center gap-1 text-sm text-white/80 hover:text-white"
+            >
+              More Info
             </button>
           </div>
         </div>
@@ -719,32 +731,120 @@ function ProjectCard({ p, index, onOpen }) {
   );
 }
 
-function ProjectModal({ project, onClose }) {
+function ProjectModal({ project, initialTab = "gallery", onClose }) {
+  const [tab, setTab] = useState(initialTab); // "gallery" | "info"
+  const [idx, setIdx] = useState(0);
+  const imgs = Array.isArray(project.images) && project.images.length > 0 ? project.images : [project.image].filter(Boolean);
+
+  // Close on ESC
   useEffect(() => {
     const onEsc = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
+
+  // Keyboard gallery nav
+  useEffect(() => {
+    const onKey = (e) => {
+      if (tab !== "gallery" || imgs.length < 2) return;
+      if (e.key === "ArrowRight") setIdx((i) => (i + 1) % imgs.length);
+      if (e.key === "ArrowLeft") setIdx((i) => (i - 1 + imgs.length) % imgs.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tab, imgs.length]);
+
   return (
     <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4">
-      <div className="relative max-w-3xl w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950">
-        <button onClick={onClose} className="absolute right-3 top-3 rounded-md border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/70 hover:bg-white/20">
-          Close
-        </button>
-        <img src={project.image} alt="" className="h-56 w-full object-cover opacity-80" />
-        <div className="p-6 text-white/80">
-          <h3 className="text-white text-2xl font-bold">{project.title}</h3>
-          <p className="mt-2 text-sm text-white/70">{project.description}</p>
-          <ul className="mt-4 list-disc pl-5 text-sm">
-            <li>Problem → Solution narrative with metrics and screenshots.</li>
-            <li>Architecture: tech stack, data flows, integrations.</li>
-            <li>Impact: performance wins, business results, user feedback.</li>
-          </ul>
-          <div className="mt-4 flex gap-3">
-            <a href={project.link} className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900">Visit</a>
-            <a href={project.repo} className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/80 hover:bg-white/10">GitHub</a>
+      <div className="relative max-w-5xl w-full overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-3 border-b border-white/10 p-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTab("gallery")}
+              className={`rounded-lg px-3 py-1.5 text-sm ${tab === "gallery" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"}`}
+            >
+              Gallery
+            </button>
+            <button
+              onClick={() => setTab("info")}
+              className={`rounded-lg px-3 py-1.5 text-sm ${tab === "info" ? "bg-white/10 text-white" : "text-white/70 hover:text-white hover:bg-white/5"}`}
+            >
+              More Info
+            </button>
           </div>
+          <button
+            onClick={onClose}
+            className="rounded-md border border-white/10 bg-white/10 px-2 py-1 text-xs text-white/70 hover:bg-white/20"
+          >
+            Close
+          </button>
         </div>
+
+        {/* Body */}
+        {tab === "gallery" ? (
+          <div className="p-0">
+            <div className="relative aspect-[16/9] w-full bg-black">
+              <img src={imgs[idx]} alt="" className="h-full w-full object-contain" loading="lazy" />
+              {imgs.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setIdx((i) => (i - 1 + imgs.length) % imgs.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white/90 hover:bg-white/20"
+                    aria-label="Previous"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() => setIdx((i) => (i + 1) % imgs.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white/90 hover:bg-white/20"
+                    aria-label="Next"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+            </div>
+
+            {imgs.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto p-3">
+                {imgs.map((src, i) => (
+                  <button
+                    key={src + i}
+                    onClick={() => setIdx(i)}
+                    className={`h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg border ${i === idx ? "border-[var(--accent)]" : "border-white/10"}`}
+                  >
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="p-6 text-white/80">
+            <h3 className="text-white text-2xl font-bold">{project.title}</h3>
+            <p className="mt-2 text-sm text-white/70">{project.description}</p>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <details open>
+                <summary className="cursor-pointer select-none text-white font-semibold">Case Study</summary>
+                <ul className="mt-3 list-disc pl-5 text-sm">
+                  <li>Problem → Solution narrative with metrics and screenshots.</li>
+                  <li>Architecture: tech stack, data flows, integrations.</li>
+                  <li>Impact: performance wins, business results, user feedback.</li>
+                </ul>
+              </details>
+            </div>
+
+            {project.link && project.link !== "#" && (
+              <div className="mt-5">
+                <a href={project.link} className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900">
+                  Visit Website
+                </a>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -760,7 +860,8 @@ function CommandPalette({ onClose, setQuery }) {
   const go = (hash) => {
     onClose();
     setTimeout(() => {
-      document.querySelector(hash)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
   };
 
@@ -777,8 +878,18 @@ function CommandPalette({ onClose, setQuery }) {
           />
         </div>
         <div className="grid grid-cols-2 gap-2 p-3">
-          {[{label:"Home",hash:"#home"},{label:"Projects",hash:"#projects"},{label:"Experience",hash:"#experience"},{label:"Skills",hash:"#skills"},{label:"Contact",hash:"#contact"}].map(it => (
-            <button key={it.hash} onClick={() => go(it.hash)} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10">
+          {[
+            { label: "Home", hash: "#home" },
+            { label: "Projects", hash: "#projects" },
+            { label: "Experience", hash: "#experience" },
+            { label: "Skills", hash: "#skills" },
+            { label: "Contact", hash: "#contact" }
+          ].map((it) => (
+            <button
+              key={it.hash}
+              onClick={() => go(it.hash)}
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm text-white/80 hover:bg-white/10"
+            >
               {it.label}
             </button>
           ))}
