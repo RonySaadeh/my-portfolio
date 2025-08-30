@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useInView, useSpring, useTransform, useScroll } from "framer-motion";
 import {
-  Github,
   Linkedin,
   Mail,
   Download,
@@ -19,30 +18,48 @@ import {
   Rocket,
   ExternalLink
 } from "lucide-react";
+// (can remove if unused elsewhere)
+// import { image, title } from "framer-motion/client";
 
-/**
- * Futuristic Portfolio — single-file React component (JS version)
- * - No TypeScript types, no casts
- * - Works in CRA/Vite/Next (mark as "use client" in Next)
- * - No repo links; View => gallery modal, More Info => case study tab
- * - Tailwind classes included; aesthetics depend on your Tailwind setup
- */
+const RECEIVER_EMAIL = "rony.saade3@hotmail.com"; // <-- put your email here
 
 const PROJECTS = [
   {
     id: "intels-sis",
     title: "INTELS SIS — Service Information System",
     description:
-      "Flutter desktop + Python/Flask. Industrial manuals, BOM, stock availability, request workflows, Excel/PDF automation.",
+      "Flutter desktop + Python/Flask. Industrial manuals, BOM, stock availability, Machine Parts Requests, Excel Request Generation and Automatic Emails.",
     tags: ["Flutter", "Python", "Excel", "PDF", "Desktop"],
     year: 2025,
-    image: "https://picsum.photos/seed/intels/1200/800",
-    link: "#", // optional marketing page (NOT a repo)
+    image: "https://th.bing.com/th/id/OIP.TDEmxKTk0SMWMDUB-3L-EgHaET?w=309&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+    link: "#",
     images: [
-      "https://picsum.photos/seed/intels1/1600/1000",
-      "https://picsum.photos/seed/intels2/1600/1000",
-      "https://picsum.photos/seed/intels3/1600/1000"
-    ]
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181636.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181645.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181652.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181711.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181717.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181724.png?raw=true"
+    ],
+    caseStudy: {
+      problem:
+        "Technicians lacked a unified, searchable system for machine manuals, BOM, and stock availability—leading to delays and errors in parts requests.",
+      solution: [
+        "Built a Flutter/Python desktop suite with embedded PDF viewer, global search, and Excel/PDF automations.",
+        "Integrated BOM & stock availability checks with filterable search and per-plant code routing.",
+        "Automated Excel request generation and email dispatch to streamline approvals."
+      ],
+      architecture: [
+        "Frontend: Flutter (desktop) with Syncfusion PDF viewer; clean architecture.",
+        "Backend: Python/Flask REST endpoints; pandas/openpyxl for Excel ops.",
+        "Data: Local folders for manuals; Excel sources for stock; optional mail relay."
+      ],
+      impact: [
+        "Reduced manual look-ups and request turnaround by ~60%.",
+        "Minimized order errors; improved traceability and adoption across sites."
+      ],
+      link: "#"
+    }
   },
   {
     id: "private-management-tool",
@@ -51,13 +68,63 @@ const PROJECTS = [
       "Flutter Web + Firebase. Parlays builder, Firestore data, analytics dashboards, Excel exports, tracking automation.",
     tags: ["Flutter Web", "Firebase", "Analytics"],
     year: 2025,
-    image: "https://picsum.photos/seed/pmt/1200/800",
+    image: "https://th.bing.com/th/id/OIP.CEzvq7tUr2SVNfHvGnoW8gHaFj?w=234&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
     link: "#",
     images: [
-      "https://picsum.photos/seed/pmt1/1600/1000",
-      "https://picsum.photos/seed/pmt2/1600/1000",
-      "https://picsum.photos/seed/pmt3/1600/1000"
-    ]
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20181202.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180645.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180654.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180705.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180717.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180731.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20180741.png?raw=true"
+    ],
+    caseStudy: {
+      problem:
+        "Manual tracking of parlays, client performance, and P&L created duplication and slow reporting.",
+      solution: [
+        "Implemented Flutter Web front-end with Firestore data model for parlays, outcomes, and commissions.",
+        "Built analytics dashboard (win/loss rate, best client, common markets/picks).",
+        "Added one-click Excel export and automated tracking list updates."
+      ],
+      architecture: [
+        "Flutter Web + Firebase (Auth, Firestore).",
+        "Cloud Functions for scheduled summaries; client-side Excel export.",
+        "Role-based views for admins vs. operators."
+      ],
+      impact: [
+        "Eliminated spreadsheet fragmentation; centralized source of truth.",
+        "Cut reporting time from hours to minutes; clearer profitability insights."
+      ],
+      link: "#"
+    }
+  },
+  {
+    id: "esab",
+    title: "ESAB - Machine and Parts Configurator",
+    description: "Python, Database Integration, Quotation Generation",
+    tags: ["Python", "Excel", "PDF"],
+    year: 2024,
+    image: "https://th.bing.com/th/id/OIP.esDhE_tzBkGZ69jgXDLb_wHaFE?w=262&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3",
+    images: [
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182103.png?raw=true"
+    ],
+    caseStudy: {
+      problem:
+        "Sales teams needed a faster way to configure machines, select compatible parts, and generate quotes.",
+      solution: [
+        "Built a Python-based configurator with rules for models, options, and compatible parts.",
+        "Integrated Excel catalogs and generated professional PDF quotations."
+      ],
+      architecture: [
+        "Python application with rules engine; pandas/openpyxl for catalogs.",
+        "Report generation with PDF libraries; optional email integration."
+      ],
+      impact: [
+        "Reduced quoting time from days to <1 hour.",
+        "Improved accuracy of configurations and customer confidence."
+      ]
+    }
   },
   {
     id: "friendscrow",
@@ -66,13 +133,45 @@ const PROJECTS = [
       "Flutter + Python ML. Group expense tracking, smart recommendations, logistic-regression feedback loops, Lebanon travel dataset.",
     tags: ["AI", "Flutter", "Python", "Travel"],
     year: 2024,
-    image: "https://picsum.photos/seed/friend/1200/800",
+    image: "https://th.bing.com/th/id/OIP.KxbPH7cs1uDTGLDqqwrRZgHaF7?w=243&h=194&c=7&r=0&o=5&dpr=1.3&pid=1.7",
     link: "#",
     images: [
-      "https://picsum.photos/seed/friend1/1600/1000",
-      "https://picsum.photos/seed/friend2/1600/1000",
-      "https://picsum.photos/seed/friend3/1600/1000"
-    ]
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959475.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959490.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959578.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959588.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959609.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959621.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959627.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959629.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959633.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959724.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959732.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959743.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959755.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959761.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959765.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959768.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959911.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot_1743959918.png?raw=true"
+    ],
+    caseStudy: {
+      problem:
+        "Groups struggled to plan trips within budget and agree on activities suited to their tastes.",
+      solution: [
+        "Built a mobile app with shared expense tracking and AI recommendation engine.",
+        "Added feedback loops (logistic regression) to learn user preferences over time."
+      ],
+      architecture: [
+        "Flutter client; Python backend for ML; dataset for Lebanon travel.",
+        "Recommendation pipeline + user feedback storage."
+      ],
+      impact: [
+        "Higher satisfaction with suggested itineraries; clearer budget visibility.",
+        "Reduced planning friction for groups."
+      ],
+      link: "#"
+    }
   },
   {
     id: "btellaya-pos",
@@ -84,28 +183,68 @@ const PROJECTS = [
     image: "https://picsum.photos/seed/pos/1200/800",
     link: "#",
     images: [
-      "https://picsum.photos/seed/pos1/1600/1000",
-      "https://picsum.photos/seed/pos2/1600/1000",
-      "https://picsum.photos/seed/pos3/1600/1000"
-    ]
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182336.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182352.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182404.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182414.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182509.png?raw=true",
+      "https://github.com/RonySaadeh/Images-To-Link-Use/blob/main/Screenshot%202025-08-30%20182602.png?raw=true"
+    ],
+    caseStudy: {
+      problem:
+        "Manual order taking and fragmented spreadsheets slowed service and created reporting gaps.",
+      solution: [
+        "Implemented table order flows with discounts/tips and daily Excel exports.",
+        "Added printable PDF receipts and an admin dashboard for oversight."
+      ],
+      architecture: [
+        "Flutter desktop; local persistence with Excel; PDF generation.",
+        "Modular UI with modern, brand-aligned visuals."
+      ],
+      impact: [
+        "Faster order turnaround, fewer errors, and cleaner end-of-day reporting.",
+        "Managers gained visibility into sales and reservations."
+      ],
+      link: "#"
+    }
   }
 ];
 
 const EXPERIENCE = [
   {
     role: "Software Engineer & Builder",
-    org: "INTELS | ESAB | Freelance",
-    period: "2023 → Present",
+    org: "INTELS - Nigeria | ESAB - United Arab Emirates",
+    period: "2024 → Present",
     bullets: [
-      "Lead Flutter/Python desktop systems with Excel/PDF automation.",
-      "Designed premium, performance-first UIs and animations.",
-      "Integrated Firestore, Auth, and analytics for the web."
+      "Engineered industrial desktop solutions in Flutter & Python with advanced Excel/PDF automation for data and workflow management.",
+      "Developed robust service information systems integrating machine manuals, stock availability, and spare-parts BOM tracking.",
+      "Designed professional, performance-first UIs with embedded PDF viewers, search, and analytics to enhance usability in engineering operations."
+    ]
+  },
+  {
+    role: "Technical Consultant BC - Microsoft Dynamic 365 Business Central",
+    org: "Exquitech - Lebanon",
+    period: "Present",
+    bullets: [
+      "Implemented and customized Business Central modules to optimize financial, sales, and inventory workflows.",
+      "Developed AL extensions and integrations with external systems, enhancing core Business Central functionality.",
+      "Delivered training and support to end-users, ensuring smooth adoption and improved business efficiency."
+    ]
+  },
+  {
+    role: "Full Stack Developer",
+    org: "Mobile Application, Website",
+    period: "2024 -> 2025",
+    bullets: [
+      "Developed and deployed cross-platform mobile, web, and desktop applications using Flutter, Python, and REST APIs.",
+      "Built automation pipelines for Excel/PDF data handling, streamlining reporting and operational workflows.",
+      "Designed modern, performance-first UIs with authentication, analytics, and Firestore integration."
     ]
   },
   {
     role: "AI/ML Projects",
-    org: "University Senior Project",
-    period: "2023 → 2024",
+    org: "Mobile Application",
+    period: "2024 → 2025",
     bullets: [
       "Travel recommendation engine with ML feedback loops.",
       "Data pipelines, experimentation notebooks, model evals."
@@ -114,12 +253,13 @@ const EXPERIENCE = [
 ];
 
 const SKILLS = [
-  { name: "Flutter / Dart", level: 92 },
-  { name: "Python / Flask", level: 90 },
-  { name: "React / Next", level: 85 },
-  { name: "Firestore / Firebase", level: 88 },
-  { name: "Excel Automation", level: 95 },
-  { name: "UI/UX & Motion", level: 93 }
+  { name: "Flutter / Dart", level: 86 },
+  { name: "Python / Flask", level: 80 },
+  {name: "Machine Leatning", level: 85},
+  { name: "React / Next", level: 75 },
+  { name: "Firestore / Firebase", level: 80 },
+  { name: "Excel Automation", level: 93 },
+  { name: "UI/UX & Motion", level: 90 }
 ];
 
 function useLocalStorage(key, initial) {
@@ -202,6 +342,9 @@ export default function FuturisticPortfolio() {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState("All");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactMsg, setContactMsg] = useState("");
 
   const [modalProject, setModalProject] = useState(null);
   const [modalTab, setModalTab] = useState("gallery"); // "gallery" | "info"
@@ -373,10 +516,16 @@ export default function FuturisticPortfolio() {
               </Magnetic>
             </div>
             <div className="mt-6 flex gap-3 text-white/70">
-              {/* You can remove GitHub if you don't want any repo hints */}
-              <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
-              <a aria-label="LinkedIn" href="#" className="hover:text-white"><Linkedin className="h-5 w-5" /></a>
-              <a aria-label="Email" href="mailto:hello@example.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
+              <a
+                  aria-label="LinkedIn"
+                  href="https://www.linkedin.com/in/rony-saadeh1"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              <a aria-label="Email" href="mailto:rony.saade3@hotmail.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
             </div>
           </div>
 
@@ -531,13 +680,62 @@ export default function FuturisticPortfolio() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            onSubmit={(e) => { e.preventDefault(); alert("Thanks! I’ll get back to you."); }}
+            onSubmit={(e) => {
+              e.preventDefault();
+
+              if (!contactName.trim() || !contactEmail.trim()) {
+                alert("Please enter your name and email.");
+                return;
+              }
+
+              const subject = `New inquiry from ${contactName}`;
+              const lines = [
+                `Name: ${contactName}`,
+                `Email: ${contactEmail}`,
+                "",
+                "Message:",
+                contactMsg || "(no message provided)"
+              ];
+              const body = lines.join("\n");
+
+              const url = `mailto:${RECEIVER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+              if (url.length > 1800) {
+                alert("Your message is a bit long for a mail client link. Please shorten it slightly.");
+                return;
+              }
+
+              window.location.href = url;
+
+              setContactName("");
+              setContactEmail("");
+              setContactMsg("");
+            }}
             className="rounded-2xl border border-white/10 bg-white/5 p-6"
           >
             <div className="grid gap-4">
-              <input className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="Your name" required />
-              <input type="email" className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="Email" required />
-              <textarea rows={5} className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60" placeholder="What can we build together?" />
+              <input
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60"
+                placeholder="Your name"
+                required
+              />
+              <input
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60"
+                placeholder="Email"
+                required
+              />
+              <textarea
+                rows={5}
+                value={contactMsg}
+                onChange={(e) => setContactMsg(e.target.value)}
+                className="rounded-xl bg-white/5 p-3 text-sm text-white/90 outline-none ring-1 ring-white/10 focus:ring-[var(--accent)]/60"
+                placeholder="What can we build together?"
+              />
               <Magnetic>
                 <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-3 font-semibold text-slate-900 shadow-lg shadow-[var(--accent)]/30">
                   Send Message <ArrowUpRight className="h-4 w-4" />
@@ -559,13 +757,23 @@ export default function FuturisticPortfolio() {
               Best reach me by email; I reply within 24h.
             </p>
             <div className="mt-4 space-y-2 text-sm">
-              <p><span className="text-white/50">Email:</span> <a className="text-white hover:underline" href="mailto:hello@example.com">hello@example.com</a></p>
+              <p>
+                <span className="text-white/50">Email:</span>{" "}
+                <a className="text-white hover:underline" href={`mailto:${RECEIVER_EMAIL}`}>{RECEIVER_EMAIL}</a>
+              </p>
               <p><span className="text-white/50">Location:</span> Beirut, Lebanon · Remote-friendly</p>
             </div>
             <div className="mt-6 flex gap-3 text-white/80">
-              <a aria-label="GitHub" href="#" className="hover:text-white"><Github className="h-5 w-5" /></a>
-              <a aria-label="LinkedIn" href="#" className="hover:text-white"><Linkedin className="h-5 w-5" /></a>
-              <a aria-label="Email" href="mailto:hello@example.com" className="hover:text-white"><Mail className="h-5 w-5" /></a>
+             <a
+                aria-label="LinkedIn"
+                href="https://www.linkedin.com/in/rony-saadeh1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white"
+              >
+                <Linkedin className="h-5 w-5" />
+              </a>
+              <a aria-label="Email" href={`mailto:${RECEIVER_EMAIL}`} className="hover:text-white"><Mail className="h-5 w-5" /></a>
             </div>
           </motion.div>
         </div>
@@ -663,10 +871,10 @@ function HeroParallax() {
               </div>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-3">
-              <Badge>Animations</Badge>
-              <Badge>Excel Automation</Badge>
+              <Badge>FrontEnd</Badge>
+              <Badge>BackEnd</Badge>
               <Badge>Firestore</Badge>
-              <Badge>PDF Tools</Badge>
+              <Badge>Machine Learning</Badge>
               <Badge>Dashboards</Badge>
               <Badge>AI Workflows</Badge>
             </div>
@@ -825,20 +1033,69 @@ function ProjectModal({ project, initialTab = "gallery", onClose }) {
             <h3 className="text-white text-2xl font-bold">{project.title}</h3>
             <p className="mt-2 text-sm text-white/70">{project.description}</p>
 
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <details open>
-                <summary className="cursor-pointer select-none text-white font-semibold">Case Study</summary>
-                <ul className="mt-3 list-disc pl-5 text-sm">
-                  <li>Problem → Solution narrative with metrics and screenshots.</li>
-                  <li>Architecture: tech stack, data flows, integrations.</li>
-                  <li>Impact: performance wins, business results, user feedback.</li>
-                </ul>
-              </details>
-            </div>
+            {/* Case Study (project-specific) */}
+            {project.caseStudy ? (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                <details open>
+                  <summary className="cursor-pointer select-none text-white font-semibold">Case Study</summary>
 
+                  {project.caseStudy.problem && (
+                    <p className="mt-3 text-sm text-white/70">
+                      <span className="font-semibold text-white">Problem: </span>
+                      {project.caseStudy.problem}
+                    </p>
+                  )}
+
+                  {Array.isArray(project.caseStudy.solution) && project.caseStudy.solution.length > 0 && (
+                    <>
+                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Solution</h4>
+                      <ul className="mt-2 list-disc pl-5 text-sm">
+                        {project.caseStudy.solution.map((s, i) => <li key={i}>{s}</li>)}
+                      </ul>
+                    </>
+                  )}
+
+                  {Array.isArray(project.caseStudy.architecture) && project.caseStudy.architecture.length > 0 && (
+                    <>
+                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Architecture</h4>
+                      <ul className="mt-2 list-disc pl-5 text-sm">
+                        {project.caseStudy.architecture.map((a, i) => <li key={i}>{a}</li>)}
+                      </ul>
+                    </>
+                  )}
+
+                  {Array.isArray(project.caseStudy.impact) && project.caseStudy.impact.length > 0 && (
+                    <>
+                      <h4 className="mt-4 text-white/90 font-semibold text-sm">Impact</h4>
+                      <ul className="mt-2 list-disc pl-5 text-sm">
+                        {project.caseStudy.impact.map((x, i) => <li key={i}>{x}</li>)}
+                      </ul>
+                    </>
+                  )}
+                </details>
+
+                {project.caseStudy.link && project.caseStudy.link !== "#" && (
+                  <div className="mt-5">
+                    <a
+                      href={project.caseStudy.link}
+                      className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900"
+                    >
+                      Visit Website
+                    </a>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-white/60">Case study coming soon.</p>
+            )}
+
+            {/* Optional marketing link at project root */}
             {project.link && project.link !== "#" && (
               <div className="mt-5">
-                <a href={project.link} className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900">
+                <a
+                  href={project.link}
+                  className="rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-slate-900"
+                >
                   Visit Website
                 </a>
               </div>
