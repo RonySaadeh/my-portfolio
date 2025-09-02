@@ -255,7 +255,7 @@ const EXPERIENCE = [
 const SKILLS = [
   { name: "Flutter / Dart", level: 86 },
   { name: "Python / Flask", level: 80 },
-  {name: "Machine Leatning", level: 85},
+  {name: "Machine Learning", level: 85},
   { name: "React / Next", level: 75 },
   { name: "Firestore / Firebase", level: 80 },
   { name: "Excel Automation", level: 93 },
